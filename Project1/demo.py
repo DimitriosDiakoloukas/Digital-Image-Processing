@@ -1,4 +1,3 @@
-# demo.py
 import pathlib
 from typing import List
 
