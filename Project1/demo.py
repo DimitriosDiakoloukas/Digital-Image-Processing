@@ -10,40 +10,58 @@ from hist_utils import calculate_hist_of_img
 
 
 def _read_grayscale(path: str) -> np.ndarray:
+    """Load image, keep luminance only, rescale to [0,1]."""
     return np.asarray(Image.open(path).convert("L"), dtype=float) / 255.0
 
 
 def _hist_data(img: np.ndarray):
-    h = calculate_hist_of_img(img, True)           # relative frequencies
-    k = np.array(sorted(h.keys()), dtype=float)
-    v = np.array([h[x] for x in k], dtype=float)
-    return k, v
+    """Return (sorted_levels, relative_frequencies)."""
+    h = calculate_hist_of_img(img, return_normalized=True)
+    levels = np.array(sorted(h.keys()), dtype=float)
+    freqs = np.array([h[x] for x in levels], dtype=float)
+    return levels, freqs
 
 
-def _plot_pair(img_a: np.ndarray, img_b: np.ndarray, titles: List[str], fname: str):
+def _plot_pair(img_a: np.ndarray, img_b: np.ndarray, titles: List[str], fname: pathlib.Path):
+    """Plot two images and their histograms."""
     fig, axes = plt.subplots(2, 2, figsize=(10, 6))
 
     axes[0, 0].imshow(img_a, cmap="gray", vmin=0, vmax=1)
-    axes[0, 0].set_title(titles[0])
-    axes[0, 0].axis("off")
+    axes[0, 0].set_title(titles[0]); axes[0, 0].axis("off")
 
     axes[0, 1].imshow(img_b, cmap="gray", vmin=0, vmax=1)
-    axes[0, 1].set_title(titles[1])
-    axes[0, 1].axis("off")
+    axes[0, 1].set_title(titles[1]); axes[0, 1].axis("off")
 
-    k, v = _hist_data(img_a)
-    axes[1, 0].bar(k, v, width=0.003)
+    k_a, v_a = _hist_data(img_a)
+    mask_a = v_a > 0
+    k_a, v_a = k_a[mask_a], v_a[mask_a]
+
+    bar_w_a = np.diff(k_a).mean() if len(k_a) > 1 else 0.002
+    axes[1, 0].bar(k_a, v_a, width=bar_w_a)
     axes[1, 0].set_title("Histogram")
 
-    k, v = _hist_data(img_b)
-    axes[1, 1].bar(k, v, width=0.003)
+    margin = 0.05
+    x_left_a  = max(0.0, k_a.min() - margin)
+    x_right_a = min(1.0, k_a.max() + margin)
+    axes[1, 0].set_xlim(x_left_a, x_right_a)
+    axes[1, 0].set_ylim(0, v_a.max() * 1.05)
+    axes[1, 0].set_xlabel("Intensity")
+    axes[1, 0].set_ylabel("Rel. freq.")
+
+    k_b, v_b = _hist_data(img_b)
+    mask_b = v_b > 0
+    k_b, v_b = k_b[mask_b], v_b[mask_b]
+
+    bar_w_b = np.diff(k_b).mean() if len(k_b) > 1 else 0.002
+    axes[1, 1].bar(k_b, v_b, width=bar_w_b)
     axes[1, 1].set_title("Histogram")
 
-    for ax in axes[1]:
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, v.max() * 1.05)
-        ax.set_xlabel("Intensity")
-        ax.set_ylabel("Rel. freq.")
+    x_left_b  = max(0.0, k_b.min() - margin)
+    x_right_b = min(1.0, k_b.max() + margin)
+    axes[1, 1].set_xlim(x_left_b, x_right_b)
+    axes[1, 1].set_ylim(0, v_b.max() * 1.05)
+    axes[1, 1].set_xlabel("Intensity")
+    axes[1, 1].set_ylabel("Rel. freq.")
 
     fig.tight_layout()
     fig.savefig(fname, dpi=300)
