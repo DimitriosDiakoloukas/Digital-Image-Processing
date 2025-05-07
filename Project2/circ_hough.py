@@ -2,12 +2,7 @@ from typing import Tuple
 import numpy as np
 
 
-def circ_hough(
-    in_img_array: np.ndarray,
-    R_max: float,
-    dim: np.ndarray,
-    V_min: int,
-) -> Tuple[np.ndarray, np.ndarray]:
+def circ_hough(in_img_array: np.ndarray, R_max: float, dim: np.ndarray, V_min: int) -> Tuple[np.ndarray, np.ndarray]:
     """
     Circular Hough transform.
 

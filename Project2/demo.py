@@ -30,7 +30,7 @@ def main() -> None:
     if not img_path.exists():
         raise FileNotFoundError(f"Input image {img_path} not found")
 
-    # ---- load & pre‑process ----
+    # ---- load and preprocessing ----
     img_gray = load_gray(img_path)
     print(f"Loaded {img_path.name}, shape {img_gray.shape}")
 
@@ -39,7 +39,7 @@ def main() -> None:
     save_png(img_path.with_name("sobel.png"), sobel_edges * 255)
     print("Saved sobel.png")
 
-    # ---- LoG edges ----
+    # ---- log edges ----
     log_edges = log_edge(img_gray)
     save_png(img_path.with_name("log.png"), log_edges * 255)
     print("Saved log.png")
@@ -55,7 +55,7 @@ def main() -> None:
         for (row, col), r in zip(centers, radii):
             print(f"  row={row:.1f}, col={col:.1f}, r={r:.1f}")
 
-    # ---- Hough on LoG edge map (optional) ----
+    # ---- Hough on log edge map ----
     centers2, radii2 = circ_hough(log_edges, r_max, dim, votes_min)
     print("\nCircles from LoG + Hough:")
     if radii2.size == 0:
