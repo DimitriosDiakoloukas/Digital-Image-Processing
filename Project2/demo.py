@@ -45,24 +45,24 @@ def main() -> None:
     print("Saved log.png")
 
     # ---- Hough on Sobel edge map ----
-    dim = np.array([nx, ny, nr], dtype=int)
-    centers, radii = circ_hough(sobel_edges, r_max, dim, votes_min)
+    # dim = np.array([nx, ny, nr], dtype=int)
+    # centers, radii = circ_hough(sobel_edges, r_max, dim, votes_min)
 
-    print("\nCircles from Sobel + Hough:")
-    if radii.size == 0:
-        print("  (none above vote threshold)")
-    else:
-        for (row, col), r in zip(centers, radii):
-            print(f"  row={row:.1f}, col={col:.1f}, r={r:.1f}")
+    # print("\nCircles from Sobel + Hough:")
+    # if radii.size == 0:
+    #     print("  (none above vote threshold)")
+    # else:
+    #     for (row, col), r in zip(centers, radii):
+    #         print(f"  row={row:.1f}, col={col:.1f}, r={r:.1f}")
 
-    # ---- Hough on log edge map ----
-    centers2, radii2 = circ_hough(log_edges, r_max, dim, votes_min)
-    print("\nCircles from LoG + Hough:")
-    if radii2.size == 0:
-        print("  (none above vote threshold)")
-    else:
-        for (row, col), r in zip(centers2, radii2):
-            print(f"  row={row:.1f}, col={col:.1f}, r={r:.1f}")
+    # # ---- Hough on log edge map ----
+    # centers2, radii2 = circ_hough(log_edges, r_max, dim, votes_min)
+    # print("\nCircles from LoG + Hough:")
+    # if radii2.size == 0:
+    #     print("  (none above vote threshold)")
+    # else:
+    #     for (row, col), r in zip(centers2, radii2):
+    #         print(f"  row={row:.1f}, col={col:.1f}, r={r:.1f}")
 
 
 if __name__ == "__main__":
