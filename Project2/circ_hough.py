@@ -1,99 +1,99 @@
-import argparse
 import cv2
 import numpy as np
-import math
-import matplotlib.pyplot as plt
 from typing import Tuple
+from PIL import Image
+from pathlib import Path
 
-def find_hough_circles(image, edge_image, r_min, r_max, delta_r, num_thetas, bin_threshold, post_process=True):
+def find_hough_circles(image, edge_image, r_min, R_max, delta_r, num_thetas, bin_threshold, post_process=True, top_k=20):
     img_height, img_width = edge_image.shape[:2]
-
     dtheta = int(360 / num_thetas)
     thetas = np.arange(0, 360, step=dtheta)
-    rs = np.arange(r_min, r_max, step=delta_r)
-
+    rs = np.arange(r_min, R_max, step=delta_r)
     cos_thetas = np.cos(np.deg2rad(thetas))
     sin_thetas = np.sin(np.deg2rad(thetas))
 
-    circle_candidates = []
-    for r in rs:
-        for t in range(num_thetas):
-            circle_candidates.append((r, int(r * cos_thetas[t]), int(r * sin_thetas[t])))
+    circle_candidates = [(r, int(r * cos_thetas[t]), int(r * sin_thetas[t]))
+                         for r in rs for t in range(num_thetas)]
 
-    accumulator = np.zeros((img_height, img_width, len(rs)), dtype=np.uint16)
+    from collections import defaultdict
+    accumulator = defaultdict(int)
 
-    ys, xs = np.nonzero(edge_image)
-    for x, y in zip(xs, ys):
-        for r, rcos_t, rsin_t in circle_candidates:
-            x_center = x - rcos_t
-            y_center = y - rsin_t
-            r_idx = int((r - r_min) / delta_r)
-            if 0 <= x_center < img_width and 0 <= y_center < img_height:
-                accumulator[y_center, x_center, r_idx] += 1
+    for y in range(img_height):
+        for x in range(img_width):
+            if edge_image[y, x] != 0:
+                for r, dx, dy in circle_candidates:
+                    xc = x - dx
+                    yc = y - dy
+                    if 0 <= xc < img_width and 0 <= yc < img_height:
+                        accumulator[(xc, yc, r)] += 1
 
     output_img = image.copy()
-    out_circles = []
+    all_circles = [
+        (x, y, r, votes / num_thetas)
+        for (x, y, r), votes in accumulator.items()
+        if votes / num_thetas >= bin_threshold
+    ]
 
-    # NEW: Extract detected circles from dense accumulator
-    y_idxs, x_idxs, r_idxs = np.nonzero(accumulator)
-    for y, x, r_idx in zip(y_idxs, x_idxs, r_idxs):
-        votes = accumulator[y, x, r_idx]
-        vote_fraction = votes / num_thetas
-        if vote_fraction >= bin_threshold:
-            r = int(r_min + r_idx * delta_r)
-            out_circles.append((x, y, r, vote_fraction))
-            print(x, y, r, vote_fraction)
+    # Sort by vote strength
+    all_circles.sort(key=lambda c: -c[3])
+    if top_k:
+        all_circles = all_circles[:top_k]
 
-    # Post-process to remove duplicates
+    # Post-process: remove near-duplicates
     if post_process:
-        pixel_threshold = 5
-        postprocess_circles = []
-        for x, y, r, v in sorted(out_circles, key=lambda t: -t[3]):
-            if all(abs(x - xc) > pixel_threshold or abs(y - yc) > pixel_threshold or abs(r - rc) > pixel_threshold
-                   for xc, yc, rc, _ in postprocess_circles):
-                postprocess_circles.append((x, y, r, v))
-        out_circles = postprocess_circles
+        final_circles = []
+        for x, y, r, v in all_circles:
+            too_close = False
+            for xc, yc, rc, _ in final_circles:
+                if np.hypot(x - xc, y - yc) < 10 and abs(r - rc) < 5:
+                    too_close = True
+                    break
+            if not too_close:
+                final_circles.append((x, y, r, v))
+        all_circles = final_circles
 
-    for x, y, r, v in out_circles:
-        output_img = cv2.circle(output_img, (x, y), r, (0, 255, 0), 2)
+    for x, y, r, _ in all_circles:
+        cv2.circle(output_img, (x, y), r, (0, 255, 0), 1)  # thin stroke for circles
 
-    return output_img, out_circles
+    return output_img, all_circles
 
 
-def circ_hough(
-    in_img_array: np.ndarray,
-    R_max: float,
-    dim: np.ndarray,
-    V_min: int
-) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Wrapper to use find_hough_circles with only 4 arguments as required by the assignment.
-    Assumes:
-      - r_min = 5
-      - delta_r = 1
-      - num_thetas = 100
-      - bin_threshold = V_min / num_thetas
-    """
-    edge_image = in_img_array.astype(np.uint8) * 255
-    input_img = cv2.cvtColor(edge_image, cv2.COLOR_GRAY2BGR)
-
-    r_min = 5
+def circ_hough(in_img_array: np.ndarray, R_max: float, dim: np.ndarray, V_min: int, log: bool) -> Tuple[np.ndarray, np.ndarray]:
+    R_min = 95
     delta_r = 1
     num_thetas = 100
-    bin_threshold = V_min / num_thetas
+    bin_threshold = V_min / num_thetas  # I define Vmin as the minimum number of votes and is used to calculate the bin threshold 
+                                        # which is the minimum number of votes required to consider a circle as detected and is 0.4 in my case.
+    min_edge_threshold = 100
+    max_edge_threshold = 200
+    
+    input_img = in_img_array.copy()
 
-    output_img, out_circles = find_hough_circles(
-        input_img,
-        edge_image,
-        r_min,
-        R_max,
-        delta_r,
-        num_thetas,
-        bin_threshold,
-        post_process=True
-    )
+    if input_img.ndim == 3:
+        edge_image = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
+        print("Converting to grayscale")
+    else:
+        edge_image = input_img.copy()
+        print("Image is already grayscale")
+    
+    edge_image = cv2.Canny(edge_image, min_edge_threshold, max_edge_threshold)
+    
+    if edge_image is not None:
+        
+        print ("Detecting Hough Circles Started!")
+        circle_img, circles = find_hough_circles(input_img, edge_image, R_min, R_max, delta_r, num_thetas, bin_threshold)
+        
+        if circle_img is not None:
+            if not log:
+                cv2.imwrite("circles_img_sobel.png", circle_img)
+            else:
+                cv2.imwrite("circles_img_log.png", circle_img)
+    else:
+        print ("Error in input image!")
+            
+    print("Detecting Hough Circles Complete!")
 
-    centers = np.array([[x, y] for x, y, r, v in out_circles], dtype=float)
-    radii   = np.array([r for x, y, r, v in out_circles], dtype=float)
+    centers = np.array([[x, y] for x, y, r, v in circles], dtype=float)
+    radii   = np.array([r for x, y, r, v in circles], dtype=float)
 
     return centers, radii
