@@ -5,6 +5,35 @@ from PIL import Image
 from pathlib import Path
 
 def find_hough_circles(image, edge_image, r_min, R_max, delta_r, num_thetas, bin_threshold, post_process=True, top_k=20):
+    """
+    Find circles in an image using the Hough transform.
+    Parameters
+    ----------
+    image : np.ndarray
+        Input image, either grayscale or RGB.
+    edge_image : np.ndarray
+        Edge-detected image (binary) using Canny or Sobel.
+    r_min : float   
+        Minimum radius of circles to detect.
+    R_max : float
+        Maximum radius of circles to detect.
+    delta_r : float 
+        Step size for radius.
+    num_thetas : int
+        Number of theta values to sample.
+    bin_threshold : float   
+        Minimum number of votes for a circle to be considered detected.
+    post_process : bool 
+        If True, post-process the detected circles to remove near-duplicates.
+    top_k : int 
+        Number of top circles to return based on vote strength.
+    Returns 
+    -------
+    output_img : np.ndarray
+        Image with detected circles drawn on it.
+    all_circles : list of tuples
+        List of detected circles, each represented as (x, y, r, votes).
+    """
     img_height, img_width = edge_image.shape[:2]
     dtheta = int(360 / num_thetas)
     thetas = np.arange(0, 360, step=dtheta)
@@ -59,6 +88,28 @@ def find_hough_circles(image, edge_image, r_min, R_max, delta_r, num_thetas, bin
 
 
 def circ_hough(in_img_array: np.ndarray, R_max: float, dim: np.ndarray, V_min: int, log: bool) -> Tuple[np.ndarray, np.ndarray]:
+    """ Detect circles in an image using Hough transform. This function is a wrapper for the find_hough_circles function, "
+        taking care of the input image and parameters, and returning the centers and radii of the detected circles.
+    Parameters 
+    ----------
+    in_img_array : np.ndarray
+        Input image, either grayscale or RGB.
+    R_max : float
+        Maximum radius of circles to detect.
+    dim : np.ndarray
+        Dimensions of the Hough transform, containing [nx, ny, nr].
+    V_min : int
+        Minimum number of votes for a circle to be considered detected.
+    log : bool
+        If True, the input image is assumed to be a log edge image; otherwise, it is assumed to be a Sobel edge image.
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        centers : np.ndarray
+            Array of shape (N, 2) containing the (x, y) coordinates of the detected circle centers.
+        radii : np.ndarray
+            Array of shape (N,) containing the radii of the detected circles.
+    """
     R_min = 95
     delta_r = 1
     num_thetas = 100

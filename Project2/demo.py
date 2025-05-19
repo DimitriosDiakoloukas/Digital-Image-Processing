@@ -33,6 +33,8 @@ def save_png(path: Path, img: np.ndarray) -> None:
 #     return resized
 
 def resize_custom_func(string_img: str) -> None:
+    """Resizing the image to 1/4 of its original size"""
+    # Load the image
     img = iio.imread(string_img + ".png")
     h, w = img.shape[:2]
     img_small = resize(

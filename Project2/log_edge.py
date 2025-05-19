@@ -15,7 +15,7 @@ def _zero_crossings(img: np.ndarray) -> np.ndarray:
 
 
 def _generate_log_kernel(sigma: float) -> Tuple[np.ndarray, np.ndarray]:
-    # Size: 6σ covers most of the Gaussian – force to be odd
+    # Size: 6 sigma covers most of the Gaussian – force to be odd
     k = int(np.ceil(3 * sigma))
     x1 = np.arange(-k, k + 1)
     x2 = np.arange(-k, k + 1)
@@ -33,7 +33,7 @@ def log_edge(in_img_array: np.ndarray, sigma: float = 1.0) -> np.ndarray:
     if in_img_array.ndim != 2:
         raise ValueError("in_img_array must be 2D")
 
-    # Generate LoG kernel from the exact formula (6)
+    # Generate LoG kernel from the exact formula (6) of the .pdf slide
     h_log, mask_origin = _generate_log_kernel(sigma)
 
     # Perform convolution
