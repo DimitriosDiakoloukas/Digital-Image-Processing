@@ -1,5 +1,3 @@
-# normalized_cuts.py
-
 import numpy as np
 from scipy.sparse import csr_matrix, diags
 from scipy.sparse.linalg import eigs
@@ -22,7 +20,13 @@ def n_cuts(affinity_mat: np.ndarray, k: int) -> np.ndarray:
     L = D - W
 
     # Solve generalized eigenproblem L v = λ D v for k smallest λ
-    vals, vecs = eigs(L, M=D, k=k, which='SM')
+    vals, vecs = eigs(L, M=D, k=k, which='SM')  
+
+    # for deterministic results, use a fixed nonzero vector as v0 uncomment this ARPACK’s
+    # internal random‐start for the Lanczos iteration
+    # n = L.shape[0]
+    # v0 = np.ones(n)       
+    # vals, vecs = eigs(L, M=D, k=k, which='SM', v0=v0)
     U = np.real(vecs)      # shape (n, k)
 
     # Cluster rows of U

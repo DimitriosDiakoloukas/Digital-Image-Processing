@@ -20,7 +20,13 @@ def spectral_clustering(affinity_mat: np.ndarray, k: int) -> np.ndarray:
     L = D - W
 
     # k smallest eigenvectors
-    vals, vecs = eigs(L, k=k, which='SM')
+    vals, vecs = eigs(L, k=k, which='SM')  
+
+    # for deterministic results, use a fixed nonzero vector as v0 uncomment this ARPACK’s
+    # internal random‐start for the Lanczos iteration
+    # n = L.shape[0]
+    # v0 = np.ones(n)       
+    # vals, vecs = eigs(L, k=k, which='SM', v0=v0)
     U = np.real(vecs)
 
     # unsupervised k-means

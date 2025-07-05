@@ -23,6 +23,7 @@ def demo3b():
         plt.axis('off')
         plt.tight_layout()
         plt.savefig(f"{varname}_one_step_n_cuts.png")
-
+        plt.close()
+        
 if __name__ == '__main__':
     demo3b()

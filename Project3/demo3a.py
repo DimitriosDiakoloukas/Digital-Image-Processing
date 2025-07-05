@@ -23,6 +23,7 @@ def demo3a():
         plt.suptitle(f'n_cuts (k=2,3,4) on {varname}')
         plt.tight_layout()
         plt.savefig(f"{varname}_n_cuts.png")
-
+        plt.close()
+        
 if __name__ == '__main__':
     demo3a()

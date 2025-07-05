@@ -25,6 +25,7 @@ def main():
         plt.suptitle(f"Spectral Clustering on {varname}")
         plt.tight_layout()
         plt.savefig(f"{varname}_segmentation.png")
+        plt.close()
         print("Saved segmentation images for", varname)
 
 if __name__ == "__main__":

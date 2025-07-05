@@ -43,6 +43,7 @@ def demo3c():
         plt.suptitle(f'Comparison on {varname}')
         plt.tight_layout()
         plt.savefig(f"{varname}_comparison.png")
-        
+        plt.close()
+
 if __name__ == '__main__':
     demo3c()
