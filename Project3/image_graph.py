@@ -11,5 +11,5 @@ def image_to_graph(img_array: np.ndarray) -> np.ndarray:
     D_sq = sq_norms + sq_norms.T - 2 * pixels.dot(pixels.T)
     D = np.sqrt(np.maximum(D_sq, 0.0))           # clamp for numerical safety
     
-    affinity_mat = 1.0 / (1.0 + D)
+    affinity_mat = np.exp(-D)
     return affinity_mat
