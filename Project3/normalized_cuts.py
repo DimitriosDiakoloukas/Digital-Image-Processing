@@ -4,6 +4,19 @@ from scipy.sparse.linalg import eigs
 from sklearn.cluster import KMeans
 
 def n_cuts(affinity_mat: np.ndarray, k: int) -> np.ndarray:
+    """
+    Perform normalized cuts clustering on a given affinity matrix.
+    Parameters
+    ----------
+    affinity_mat : np.ndarray
+    Square matrix representing the affinity between nodes.
+    k : int
+    Number of clusters to form, must satisfy 2 <= k < n, where n is the number of nodes.
+    Returns
+    -------
+    np.ndarray
+    Array of cluster labels for each node, with values in {0, 1, ..., k-1}.
+    """
     n = affinity_mat.shape[0]
     if affinity_mat.shape[1] != n:
         raise ValueError("affinity_mat must be square")
@@ -37,6 +50,30 @@ def n_cuts(affinity_mat: np.ndarray, k: int) -> np.ndarray:
 
 def calculate_n_cut_value(affinity_mat: np.ndarray,
                           cluster_idx: np.ndarray) -> float:
+    """
+    Calculate the normalized cut value for a given clustering.  
+    The normalized cut value is defined as:
+    Ncut(A,B) = 2 - (assoc(A,V)/assoc(A,A) + assoc(B,V)/assoc(B,B))
+    where A and B are the two clusters, V is the set of all nodes,
+    assoc(A,V) is the sum of affinities from nodes in A to all nodes,
+    assoc(A,A) is the sum of affinities within cluster A, and
+    assoc(B,B) is the sum of affinities within cluster B.
+    Parameters
+    ----------
+    affinity_mat : np.ndarray
+        Square matrix representing the affinity between nodes.
+    cluster_idx : np.ndarray
+        Array of cluster labels for each node, must contain exactly two labels 0 and 1
+    Returns
+    -------
+    float
+        The normalized cut value for the clustering.
+    Raises
+    ------
+    ValueError
+        If affinity_mat is not square or if cluster_idx does not contain exactly two labels 0
+        and 1.
+    """
     labels = cluster_idx.astype(int)
     if set(np.unique(labels)) - {0,1}:
         raise ValueError("cluster_idx must contain exactly two labels 0 and 1")
@@ -64,6 +101,29 @@ def calculate_n_cut_value(affinity_mat: np.ndarray,
 def n_cuts_recursive(affinity_mat: np.ndarray,
                      T1: int,
                      T2: float) -> np.ndarray:
+    """
+    Perform recursive normalized cuts clustering on a given affinity matrix.
+
+    Parameters
+    ----------
+    affinity_mat : np.ndarray
+        Square matrix representing the affinity between nodes.
+    T1 : int
+        Minimum size of clusters to consider for splitting.
+    T2 : float
+        Threshold for Ncut value to decide whether to split further.
+
+    Returns
+    -------
+    np.ndarray
+        Array of cluster labels for each node.
+
+    Raises
+    ------
+    ValueError
+        If affinity_mat is not square or if T1 is not a positive integer.
+        If T2 is not a non-negative float. 
+    """
     n = affinity_mat.shape[0]
     if affinity_mat.shape[1] != n:
         raise ValueError("affinity_mat must be square")

@@ -1,6 +1,17 @@
 import numpy as np
 
 def image_to_graph(img_array: np.ndarray) -> np.ndarray:
+    """
+    Convert an image to a graph representation where each pixel is a node
+    and edges are defined by the Euclidean distance between pixels.
+    Parameters:
+    img_array (np.ndarray): Input image as a 3D numpy array of shape (M, N, C)
+                            where M is height, N is width, and C is color channels.
+
+    Returns:
+    np.ndarray: Affinity matrix representing the graph, where each entry
+                corresponds to the affinity between two pixels.
+    """
     M, N, C = img_array.shape
     pixels = img_array.reshape(-1, C)            # (MN, C)
     
