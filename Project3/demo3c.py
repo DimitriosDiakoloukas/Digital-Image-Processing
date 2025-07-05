@@ -7,8 +7,12 @@ from image_graph import image_to_graph
 
 def demo3c():
     data = loadmat('dip_hw_3.mat')
-    T1 = 5
+    T1 = 5.0 
     T2 = 0.20
+
+    # Experimenting with different T1 and T2 values
+    # T1 = 1000 # now 2500 > 1000, so it will bisect the root d2a, recursive cluster sizes: [2500]
+    # T2 = np.inf
     for varname in ['d2a', 'd2b']:
         img = data[varname]
         M, N, _ = img.shape
