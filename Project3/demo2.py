@@ -2,7 +2,7 @@ import numpy as np
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
 
-from image_graph import image_to_graph
+from image_to_graph import image_to_graph
 from spectral_clustering import spectral_clustering
 
 def main():

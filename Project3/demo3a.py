@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
-from normalized_cuts import n_cuts
-from image_graph import image_to_graph
+from n_cuts import n_cuts
+from image_to_graph import image_to_graph
 
 def demo3a():
     data = loadmat('dip_hw_3.mat')

@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
-from normalized_cuts import n_cuts_recursive
+from n_cuts import n_cuts_recursive
 from spectral_clustering import spectral_clustering
-from image_graph import image_to_graph
+from image_to_graph import image_to_graph
 
 def demo3c():
     data = loadmat('dip_hw_3.mat')
